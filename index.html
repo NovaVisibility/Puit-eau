@@ -476,13 +476,7 @@ footer .fr span{color:var(--sky-light);}
           </select>
         </div>
         <div class="fg"><label id="fl-ms">Message</label><textarea name="message" placeholder="Décrivez votre projet..." required></textarea></div>
-        <div class="fg">
-          <label id="fl-fi">Photo / Fichier (optionnel)</label>
-          <div class="file-upload">
-            <input type="file" name="fichier" accept="image/*,.pdf" onchange="updateFile(this)">
-            <div class="file-fake"><span style="font-size:18px;">📎</span><span id="fileLabel">Joindre une photo ou un fichier...</span></div>
-          </div>
-        </div>
+
         <button type="submit" class="btn-sub" id="btnSub">Envoyer la demande</button>
       </form>
       <div class="fsuccess" id="fsuccess">
@@ -519,11 +513,16 @@ function submitForm(e){
   btn.textContent = document.body.className === 'fr' ? 'Envoi en cours...' : 'Sending...';
   const formData = new FormData(form);
   fetch('https://formspree.io/f/mvzdepoq', {method:'POST', body:formData, headers:{Accept:'application/json'}})
-    .then(() => {
-      form.style.display = 'none';
-      document.getElementById('fsuccess').style.display = 'block';
+    .then(response => {
+      if(response.ok){
+        form.style.display = 'none';
+        document.getElementById('fsuccess').style.display = 'block';
+      } else {
+        return response.json().then(data => { throw new Error(data.error || 'Error '+response.status); });
+      }
     })
-    .catch(() => {
+    .catch((err) => {
+      console.error('Formspree error:', err);
       btn.disabled = false;
       btn.textContent = originalTxt;
       alert(document.body.className === 'fr' 
@@ -719,3 +718,11 @@ function updateInviteLang(){
   const originalSetLang = setLang;
   window.setLang = function(l){ originalSetLang(l); updateInviteLang(); };
 })();
+updateInviteLang();
+
+// Auto-hide invitation after 25s if user hasn't interacted
+setTimeout(function(){ if(!chatOpen) hideInvite(); }, 25000);
+</script>
+
+</body>
+</html>
